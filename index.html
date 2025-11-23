@@ -3,10 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LashStudio - Extensão de Cílios Premium em São Paulo</title>
-    <meta name="description" content="Especialistas em extensão de cílios com técnicas avançadas. Fio a fio, Volume Russo, Mega Volume. Agende seu horário e realce sua beleza natural." />
+
+    <!-- TÍTULO – coloque nome + cidade/bairro -->
+    <title>LashStudio - Extensão de Cílios em São Paulo - SP</title>
+
+    <!-- DESCRIÇÃO – texto vendedor, com palavras-chave reais -->
+    <meta
+      name="description"
+      content="LashStudio é especializado em extensão de cílios em São Paulo. Técnicas fio a fio, volume russo e mega volume para realçar seu olhar com segurança, conforto e materiais de alta qualidade. Agende seu horário pelo WhatsApp."
+    />
+
+    <!-- Autor / Marca -->
     <meta name="author" content="LashStudio" />
-    <meta name="keywords" content="extensão de cílios, volume russo, fio a fio, mega volume, alongamento de cílios, são paulo, beleza" />
+
+    <!-- Keywords (hoje quase não influenciam, mas pode deixar) -->
+    <meta
+      name="keywords"
+      content="extensão de cílios em São Paulo, cílios fio a fio, volume russo, mega volume, alongamento de cílios, design de cílios, estúdio de cílios São Paulo"
+    />
+
+    <!-- Indexação -->
+    <meta name="robots" content="index,follow" />
+
+    <!-- Canonical: coloque aqui o domínio REAL do site -->
+    <link rel="canonical" href="https://julia-lashes-studio.vercel.app/" />
 
     <!-- Favicons & PWA icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -21,36 +41,104 @@
     <meta name="msapplication-TileColor" content="#F8EAF0" />
     <meta name="theme-color" content="#F8EAF0" />
 
-    <!-- SEO / Sharing -->
-    <meta name="robots" content="index,follow" />
-    <link rel="canonical" href="https://seu-dominio.com/" />
-
     <!-- Open Graph (Facebook / WhatsApp / Social) -->
+    <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="LashStudio" />
-    <meta property="og:title" content="LashStudio - Extensão de Cílios Premium" />
-    <meta property="og:description" content="Transforme seu olhar com nossas técnicas profissionais de extensão de cílios. Agende seu horário!" />
+    <meta
+      property="og:title"
+      content="LashStudio - Extensão de Cílios em São Paulo - SP"
+    />
+    <meta
+      property="og:description"
+      content="Transforme seu olhar com técnicas profissionais de extensão de cílios em São Paulo. Fio a fio, volume russo e mega volume com todo cuidado que você merece."
+    />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://julia-lashes-studio.vercel.app/" />
-    <meta property="og:image" content="https://julia-lashes-studio.vercel.app/icon-512.png" />
+    <meta
+      property="og:url"
+      content="https://julia-lashes-studio.vercel.app/"
+    />
+    <meta
+      property="og:image"
+      content="https://julia-lashes-studio.vercel.app/icon-512.png"
+    />
     <meta property="og:image:alt" content="LashStudio - Extensão de Cílios" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
 
-    <!-- Twitter Card -->
+    <!-- Twitter Card (se não tiver Twitter, pode remover ou ajustar) -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@LashStudio" />
     <meta name="twitter:creator" content="@LashStudio" />
-    <meta name="twitter:title" content="LashStudio - Extensão de Cílios Premium" />
-    <meta name="twitter:description" content="Transforme seu olhar com nossas técnicas profissionais de extensão de cílios. Agende seu horário!" />
-    <meta name="twitter:image" content="https://julia-lashes-studio.vercel.app/icon-512.png" />
+    <meta
+      name="twitter:title"
+      content="LashStudio - Extensão de Cílios em São Paulo - SP"
+    />
+    <meta
+      name="twitter:description"
+      content="Transforme seu olhar com nossas técnicas profissionais de extensão de cílios. Agende seu horário!"
+    />
+    <meta
+      name="twitter:image"
+      content="https://julia-lashes-studio.vercel.app/icon-512.png"
+    />
 
-    <!-- Optional: robots file link (noindex handled by server) -->
-    <link rel="robots" href="/robots.txt" />
+    <!-- NÃO precisa de <link rel="robots">, o robots.txt é lido direto em /robots.txt -->
+    <!-- <link rel="robots" href="/robots.txt" />  (pode remover) -->
+
+    <!-- Dados estruturados para negócio local (IMPORTANTE para endereço no Google) -->
+    <!-- TROCAR os dados abaixo (nome, telefone, endereço, latitude/longitude) pelos reais -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BeautySalon",
+        "name": "LashStudio",
+        "image": "https://julia-lashes-studio.vercel.app/icon-512.png",
+        "@id": "https://julia-lashes-studio.vercel.app/",
+        "url": "https://julia-lashes-studio.vercel.app/",
+        "telephone": "+55 11 99999-9999",
+        "priceRange": "$$",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Rua Exemplo, 123",
+          "addressLocality": "Bairro Tal",
+          "addressRegion": "SP",
+          "postalCode": "01234-567",
+          "addressCountry": "BR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": -23.55052,
+          "longitude": -46.633308
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday"
+            ],
+            "opens": "09:00",
+            "closes": "19:00"
+          }
+        ],
+        "sameAs": [
+          "https://www.instagram.com/seu_instagram_aqui",
+          "https://www.facebook.com/seu_facebook_aqui"
+        ]
+      }
+    </script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
 
   <body>
