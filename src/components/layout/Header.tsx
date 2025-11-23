@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Menu, X, Phone, Instagram } from "lucide-react";
+import { Sparkles, Menu, X, Phone, Instagram, LogIn } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -13,6 +13,7 @@ const Header = () => {
     { label: "Serviços", path: "/servicos" },
     { label: "Galeria", path: "/galeria" },
     { label: "Contato", path: "/contato" },
+    { label: "Administração", path: "/administracao" },
   ];
 
   return (
@@ -53,6 +54,15 @@ const Header = () => {
                 <Phone className="w-5 h-5" />
               </a>
             </Button>
+
+            {/* Botão do Painel (login/admin) */}
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/sistema/login" className="flex items-center gap-2 px-3 py-1">
+                <LogIn className="w-4 h-4" />
+                <span className="text-sm">Painel</span>
+              </Link>
+            </Button>
+
             <Button variant="hero" size="lg" asChild>
               <Link to="/agendar">Agendar Horário</Link>
             </Button>
@@ -88,6 +98,17 @@ const Header = () => {
                   {item.label}
                 </Link>
               ))}
+
+              {/* Link rápido para Painel no menu mobile */}
+              <Link
+                to="/sistema/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-foreground hover:text-primary transition-colors font-medium py-2 flex items-center gap-2"
+              >
+                <LogIn className="w-5 h-5" />
+                Acessar Painel
+              </Link>
+
               <div className="flex gap-3 pt-4 border-t border-border">
                 <Button variant="ghost" size="icon" asChild>
                   <a href="https://www.instagram.com/juliaoliveiramartins_/?igsh=ZHdua2V5Mnk3dDY0#" target="_blank" rel="noopener noreferrer">
