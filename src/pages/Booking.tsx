@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,22 @@ import { Calendar, Clock, User, Phone, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { servicesAPI, appointmentsAPI } from "@/lib/api";
 
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+  durationMinutes: number;
+  active: boolean;
+}
+
 const Booking = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingServices, setIsLoadingServices] = useState(false);
 
   const [bookingData, setBookingData] = useState({
     serviceId: searchParams.get("service") || "",
@@ -32,30 +42,31 @@ const Booking = () => {
 
   const loadServices = async () => {
     try {
+      setIsLoadingServices(true);
       const data = await servicesAPI.getAll();
       setServices(data);
     } catch (error) {
-      // Fallback to mock data if API fails
-      setServices([
-        { id: "1", name: "Fio a Fio", price: 150, duration: "2h" },
-        { id: "2", name: "Volume Russo", price: 200, duration: "2h30" },
-        { id: "3", name: "Mega Volume", price: 250, duration: "3h" },
-        { id: "4", name: "Volume Híbrido", price: 180, duration: "2h30" },
-        { id: "5", name: "Manutenção", price: 100, duration: "1h30" },
-      ]);
+      toast.error("Erro ao carregar serviços");
+      console.error(error);
+    } finally {
+      setIsLoadingServices(false);
     }
   };
 
   const loadAvailability = async () => {
     if (!bookingData.serviceId || !bookingData.date) return;
-    
+
     setIsLoading(true);
     try {
-      const data = await appointmentsAPI.getAvailability(bookingData.serviceId, bookingData.date);
+      const data = await appointmentsAPI.getAvailability(
+        bookingData.serviceId,
+        bookingData.date
+      );
       setAvailableTimes(data.availableTimes || []);
     } catch (error) {
-      // Fallback to mock times
-      setAvailableTimes(["09:00", "10:30", "13:00", "14:30", "16:00", "17:30"]);
+      toast.error("Erro ao carregar horários disponíveis");
+      console.error(error);
+      setAvailableTimes([]);
     } finally {
       setIsLoading(false);
     }
@@ -78,14 +89,23 @@ const Booking = () => {
       await appointmentsAPI.create(bookingData);
       setStep(5);
       toast.success("Agendamento realizado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao realizar agendamento. Tente novamente ou entre em contato via WhatsApp.");
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message ||
+          "Erro ao realizar agendamento. Tente novamente ou entre em contato via WhatsApp."
+      );
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const selectedService = services.find((s) => s.id === bookingData.serviceId);
+
+  const getMinDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
 
   const renderStep = () => {
     switch (step) {
@@ -96,48 +116,67 @@ const Booking = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6 px-2 md:px-0"
           >
-            <h2 className="text-3xl font-serif font-bold text-foreground mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-3xl font-serif font-bold text-foreground mb-4 md:mb-6">
               Escolha o Serviço
             </h2>
-            <RadioGroup
-              value={bookingData.serviceId}
-              onValueChange={(value) => setBookingData({ ...bookingData, serviceId: value })}
-              className="space-y-4"
-            >
-              {services.map((service) => (
-                <div
-                  key={service.id}
-                  className={`flex items-center space-x-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                    bookingData.serviceId === service.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  onClick={() => setBookingData({ ...bookingData, serviceId: service.id })}
+            {isLoadingServices ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+              </div>
+            ) : (
+              <>
+                <RadioGroup
+                  value={bookingData.serviceId}
+                  onValueChange={(value) =>
+                    setBookingData({ ...bookingData, serviceId: value })
+                  }
+                  className="space-y-3 md:space-y-4"
                 >
-                  <RadioGroupItem value={service.id} id={service.id} />
-                  <Label htmlFor={service.id} className="flex-1 cursor-pointer">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-foreground">{service.name}</p>
-                        <p className="text-sm text-muted-foreground">Duração: {service.duration}</p>
-                      </div>
-                      <p className="text-primary font-bold text-lg">R$ {service.price}</p>
+                  {services.map((service) => (
+                    <div
+                      key={service.id}
+                      className={`flex items-start space-x-3 p-3 md:p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        bookingData.serviceId === service.id
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                      onClick={() =>
+                        setBookingData({ ...bookingData, serviceId: service.id })
+                      }
+                    >
+                      <RadioGroupItem value={service.id} id={service.id} />
+                      <Label htmlFor={service.id} className="flex-1 cursor-pointer flex-col space-y-1">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                          <p className="font-semibold text-foreground text-sm md:text-base">
+                            {service.name}
+                          </p>
+                          <p className="text-primary font-bold text-base md:text-lg">
+                            R$ {service.price}
+                          </p>
+                        </div>
+                        <p className="text-xs md:text-sm text-muted-foreground">
+                          Duração: {Math.floor(service.durationMinutes / 60)}h
+                          {service.durationMinutes % 60
+                            ? `${service.durationMinutes % 60}m`
+                            : ""}
+                        </p>
+                      </Label>
                     </div>
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-            <Button
-              variant="hero"
-              size="lg"
-              className="w-full"
-              disabled={!bookingData.serviceId}
-              onClick={() => setStep(2)}
-            >
-              Continuar
-            </Button>
+                  ))}
+                </RadioGroup>
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="w-full text-sm sm:text-base"
+                  disabled={!bookingData.serviceId}
+                  onClick={() => setStep(2)}
+                >
+                  Continuar
+                </Button>
+              </>
+            )}
           </motion.div>
         );
 
@@ -148,30 +187,37 @@ const Booking = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6 px-2 md:px-0"
           >
-            <h2 className="text-3xl font-serif font-bold text-foreground mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-3xl font-serif font-bold text-foreground mb-4 md:mb-6">
               Escolha a Data
             </h2>
             <div>
-              <Label htmlFor="date">Selecione uma data</Label>
+              <Label htmlFor="date" className="text-sm md:text-base">Selecione uma data</Label>
               <Input
                 id="date"
                 type="date"
-                min={new Date().toISOString().split("T")[0]}
+                min={getMinDate()}
                 value={bookingData.date}
-                onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
-                className="mt-2"
+                onChange={(e) =>
+                  setBookingData({ ...bookingData, date: e.target.value })
+                }
+                className="mt-2 text-sm md:text-base"
               />
             </div>
-            <div className="flex gap-4">
-              <Button variant="outline" size="lg" onClick={() => setStep(1)} className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-3 gap-3 md:gap-4">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setStep(1)}
+                className="flex-1 text-sm sm:text-base"
+              >
                 Voltar
               </Button>
               <Button
                 variant="hero"
                 size="lg"
-                className="flex-1"
+                className="flex-1 text-sm sm:text-base"
                 disabled={!bookingData.date}
                 onClick={() => setStep(3)}
               >
@@ -188,47 +234,52 @@ const Booking = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6 px-2 md:px-0"
           >
-            <h2 className="text-3xl font-serif font-bold text-foreground mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-3xl font-serif font-bold text-foreground mb-4 md:mb-6">
               Escolha o Horário
             </h2>
             {isLoading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-                <p className="text-muted-foreground mt-4">Carregando horários...</p>
+                <p className="text-muted-foreground mt-4 text-sm md:text-base">Carregando horários...</p>
               </div>
             ) : availableTimes.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
                 {availableTimes.map((time) => (
                   <Button
                     key={time}
                     variant={bookingData.time === time ? "hero" : "outline"}
                     onClick={() => setBookingData({ ...bookingData, time })}
-                    className="h-16"
+                    className="h-12 md:h-14 text-xs sm:text-sm"
                   >
-                    <Clock className="w-4 h-4 mr-2" />
+                    <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                     {time}
                   </Button>
                 ))}
               </div>
             ) : (
               <div className="text-center py-12 bg-muted/30 rounded-lg">
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm md:text-base px-4">
                   Não há horários disponíveis para esta data.
                   <br />
                   Por favor, escolha outra data.
                 </p>
               </div>
             )}
-            <div className="flex gap-4">
-              <Button variant="outline" size="lg" onClick={() => setStep(2)} className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setStep(2)}
+                className="flex-1 text-sm sm:text-base"
+              >
                 Voltar
               </Button>
               <Button
                 variant="hero"
                 size="lg"
-                className="flex-1"
+                className="flex-1 text-sm sm:text-base"
                 disabled={!bookingData.time}
                 onClick={() => setStep(4)}
               >
@@ -245,66 +296,79 @@ const Booking = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6 px-2 md:px-0"
           >
-            <h2 className="text-3xl font-serif font-bold text-foreground mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-3xl font-serif font-bold text-foreground mb-4 md:mb-6">
               Seus Dados
             </h2>
-            
+
             {/* Resumo */}
-            <div className="bg-rose-light/20 rounded-lg p-6 space-y-3">
-              <h3 className="font-semibold text-foreground mb-4">Resumo do Agendamento</h3>
-              <div className="flex items-center gap-3 text-sm">
-                <User className="w-4 h-4 text-primary" />
+            <div className="bg-rose-light/20 rounded-lg p-4 md:p-6 space-y-3">
+              <h3 className="font-semibold text-foreground mb-4 text-sm md:text-base">
+                Resumo do Agendamento
+              </h3>
+              <div className="flex items-center gap-3 text-xs md:text-sm">
+                <User className="w-4 h-4 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Serviço:</span>
-                <span className="font-medium text-foreground">{selectedService?.name}</span>
+                <span className="font-medium text-foreground break-words">{selectedService?.name}</span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Calendar className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-3 text-xs md:text-sm">
+                <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Data:</span>
                 <span className="font-medium text-foreground">
                   {new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR")}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Clock className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-3 text-xs md:text-sm">
+                <Clock className="w-4 h-4 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Horário:</span>
                 <span className="font-medium text-foreground">{bookingData.time}</span>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <div>
-                <Label htmlFor="name">Nome completo</Label>
+                <Label htmlFor="name" className="text-sm md:text-base">Nome completo</Label>
                 <Input
                   id="name"
                   value={bookingData.name}
-                  onChange={(e) => setBookingData({ ...bookingData, name: e.target.value })}
+                  onChange={(e) =>
+                    setBookingData({ ...bookingData, name: e.target.value })
+                  }
                   placeholder="Seu nome"
+                  className="mt-2 text-sm md:text-base"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Telefone/WhatsApp</Label>
+                <Label htmlFor="phone" className="text-sm md:text-base">Telefone/WhatsApp</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={bookingData.phone}
-                  onChange={(e) => setBookingData({ ...bookingData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setBookingData({ ...bookingData, phone: e.target.value })
+                  }
                   placeholder="(62) 99600-6289"
+                  className="mt-2 text-sm md:text-base"
                   required
                 />
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Button variant="outline" size="lg" onClick={() => setStep(3)} className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setStep(3)}
+                className="flex-1 text-sm sm:text-base"
+              >
                 Voltar
               </Button>
               <Button
                 variant="hero"
                 size="lg"
-                className="flex-1"
+                className="flex-1 text-sm sm:text-base"
                 disabled={isLoading}
                 onClick={handleSubmit}
               >
@@ -320,26 +384,26 @@ const Booking = () => {
             key="step5"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center space-y-6 py-12"
+            className="text-center space-y-4 md:space-y-6 py-8 md:py-12 px-2 md:px-0"
           >
-            <div className="w-20 h-20 mx-auto bg-gradient-primary rounded-full flex items-center justify-center">
-              <Check className="w-10 h-10 text-white" />
+            <div className="w-16 h-16 md:w-20 md:h-20 mx-auto bg-gradient-primary rounded-full flex items-center justify-center">
+              <Check className="w-8 h-8 md:w-10 md:h-10 text-white" />
             </div>
-            <h2 className="text-4xl font-serif font-bold text-foreground">
+            <h2 className="text-3xl sm:text-4xl md:text-4xl font-serif font-bold text-foreground">
               Agendamento Confirmado!
             </h2>
-            <div className="bg-rose-light/20 rounded-lg p-6 max-w-md mx-auto space-y-3">
-              <p className="text-foreground font-semibold">{selectedService?.name}</p>
-              <p className="text-muted-foreground">
-                {new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR")} às{" "}
-                {bookingData.time}
+            <div className="bg-rose-light/20 rounded-lg p-4 md:p-6 max-w-md mx-auto space-y-2 md:space-y-3">
+              <p className="text-foreground font-semibold text-sm md:text-base">
+                {selectedService?.name}
+              </p>
+              <p className="text-muted-foreground text-xs md:text-sm">
+                {new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR")} às {bookingData.time}
               </p>
             </div>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Enviamos uma confirmação para seu WhatsApp. Caso precise remarcar ou cancelar, entre
-              em contato conosco com antecedência.
+            <p className="text-muted-foreground max-w-md mx-auto text-sm md:text-base px-2">
+              Enviamos uma confirmação para seu WhatsApp. Caso precise remarcar ou cancelar, entre em contato conosco.
             </p>
-            <Button variant="hero" size="lg" onClick={() => (window.location.href = "/")}>
+            <Button variant="hero" size="lg" onClick={() => navigate("/")} className="text-sm sm:text-base">
               Voltar para Home
             </Button>
           </motion.div>
@@ -354,17 +418,17 @@ const Booking = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <section className="pt-32 pb-20 min-h-screen">
-        <div className="container mx-auto px-4">
+      <section className="pt-20 md:pt-32 pb-12 md:pb-20 min-h-screen px-4">
+        <div className="container mx-auto">
           <div className="max-w-2xl mx-auto">
             {/* Progress Indicator */}
             {step < 5 && (
-              <div className="mb-12">
-                <div className="flex justify-between items-center mb-4">
+              <div className="mb-8 md:mb-12">
+                <div className="flex justify-between items-center mb-3 md:mb-4 gap-2">
                   {[1, 2, 3, 4].map((s) => (
                     <div
                       key={s}
-                      className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all ${
+                      className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full font-semibold transition-all text-xs md:text-sm ${
                         s === step
                           ? "bg-primary text-primary-foreground scale-110"
                           : s < step
@@ -372,11 +436,11 @@ const Booking = () => {
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {s < step ? <Check className="w-5 h-5" /> : s}
+                      {s < step ? <Check className="w-4 h-4 md:w-5 md:h-5" /> : s}
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1 md:gap-2">
                   {[1, 2, 3, 4].map((s) => (
                     <div
                       key={s}

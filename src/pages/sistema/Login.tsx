@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,8 +27,8 @@ const Login = () => {
       toast.success("Login realizado com sucesso!");
       navigate("/sistema/dashboard");
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Credenciais inválidas";
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || "Erro ao fazer login");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -37,24 +37,19 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-accent p-4">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-md"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
       >
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Sparkles className="w-10 h-10 text-primary" />
-            <span className="font-serif text-3xl font-bold text-foreground">LashStudio</span>
-          </div>
-          <p className="text-muted-foreground">Área Administrativa</p>
-        </div>
-
-        <Card className="shadow-elegant">
-          <CardHeader>
-            <CardTitle className="text-2xl font-serif">Bem-vinda!</CardTitle>
-            <CardDescription>Entre com suas credenciais para acessar o sistema</CardDescription>
+        <Card className="w-full max-w-md shadow-elegant">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              <Sparkles className="w-12 h-12 text-primary" />
+            </div>
+            <CardTitle className="text-3xl font-serif">LashStudio</CardTitle>
+            <CardDescription>Sistema Administrativo</CardDescription>
           </CardHeader>
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -66,9 +61,10 @@ const Login = () => {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="seu@email.com"
                   required
-                  autoComplete="email"
+                  disabled={isLoading}
                 />
               </div>
+
               <div>
                 <Label htmlFor="password">Senha</Label>
                 <Input
@@ -78,21 +74,20 @@ const Login = () => {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="••••••••"
                   required
-                  autoComplete="current-password"
+                  disabled={isLoading}
                 />
               </div>
-              <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
+
+              <Button type="submit" className="w-full" variant="hero" size="lg" disabled={isLoading}>
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
             </form>
+
+            <p className="text-xs text-muted-foreground text-center mt-6">
+              Sistema restrito para administração. Acesso apenas para autorizados.
+            </p>
           </CardContent>
         </Card>
-
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          <a href="/" className="hover:text-primary transition-colors">
-            ← Voltar para o site
-          </a>
-        </p>
       </motion.div>
     </div>
   );

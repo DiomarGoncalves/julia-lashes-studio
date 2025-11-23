@@ -13,7 +13,14 @@ import Booking from "./pages/Booking";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/sistema/Login";
 import Dashboard from "./pages/sistema/Dashboard";
+import Agenda from "./pages/sistema/Agenda";
+import Clientes from "./pages/sistema/Clientes";
+import Servicos from "./pages/sistema/Servicos";
+import Configuracoes from "./pages/sistema/Configuracoes";
 import ProtectedRoute from "./components/sistema/ProtectedRoute";
+import Testimonial from "./pages/Testimonial";
+import Depoimentos from "./pages/sistema/Depoimentos";
+import Galeria from "./pages/sistema/Galeria";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +39,7 @@ const App = () => (
             <Route path="/galeria" element={<Gallery />} />
             <Route path="/contato" element={<Contact />} />
             <Route path="/agendar" element={<Booking />} />
+            <Route path="/depoimento/:uniqueLink" element={<Testimonial />} />
 
             {/* Admin Routes */}
             <Route path="/sistema/login" element={<Login />} />
@@ -44,12 +52,19 @@ const App = () => (
               }
             />
             <Route path="/sistema" element={<Navigate to="/sistema/dashboard" replace />} />
-            
-            {/* Placeholders for other admin routes - to be implemented */}
-            <Route path="/sistema/agenda" element={<ProtectedRoute><div>Agenda - Em desenvolvimento</div></ProtectedRoute>} />
-            <Route path="/sistema/clientes" element={<ProtectedRoute><div>Clientes - Em desenvolvimento</div></ProtectedRoute>} />
-            <Route path="/sistema/servicos" element={<ProtectedRoute><div>Serviços - Em desenvolvimento</div></ProtectedRoute>} />
-            <Route path="/sistema/configuracoes" element={<ProtectedRoute><div>Configurações - Em desenvolvimento</div></ProtectedRoute>} />
+            <Route path="/sistema/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+            <Route path="/sistema/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
+            <Route path="/sistema/servicos" element={<ProtectedRoute><Servicos /></ProtectedRoute>} />
+            <Route path="/sistema/galeria" element={<ProtectedRoute><Galeria /></ProtectedRoute>} />
+            <Route path="/sistema/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+            <Route
+              path="/sistema/depoimentos"
+              element={
+                <ProtectedRoute>
+                  <Depoimentos />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

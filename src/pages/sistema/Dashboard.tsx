@@ -1,47 +1,151 @@
 import AdminLayout from "@/components/layout/AdminLayout";
+import { useEffect, useState } from "react";
+import { appointmentsAPI, clientsAPI, servicesAPI } from "@/lib/api";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, DollarSign, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
-const Dashboard = () => {
-  // Mock data - in production, this would come from the API
-  const stats = [
-    {
-      title: "Agendamentos Hoje",
-      value: "8",
-      description: "3 pendentes",
-      icon: Calendar,
-      color: "text-primary",
-    },
-    {
-      title: "Total de Clientes",
-      value: "142",
-      description: "+12 este mês",
-      icon: Users,
-      color: "text-primary",
-    },
-    {
-      title: "Receita do Mês",
-      value: "R$ 8.450",
-      description: "+15% vs mês anterior",
-      icon: DollarSign,
-      color: "text-primary",
-    },
-    {
-      title: "Taxa de Retorno",
-      value: "87%",
-      description: "Clientes recorrentes",
-      icon: TrendingUp,
-      color: "text-primary",
-    },
-  ];
+interface DashboardStat {
+  title: string;
+  value: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
 
-  const upcomingAppointments = [
-    { id: 1, client: "Maria Silva", service: "Volume Russo", time: "10:00", status: "confirmado" },
-    { id: 2, client: "Ana Costa", service: "Manutenção", time: "13:30", status: "confirmado" },
-    { id: 3, client: "Carla Santos", service: "Fio a Fio", time: "15:00", status: "pendente" },
-    { id: 4, client: "Julia Oliveira", service: "Mega Volume", time: "17:00", status: "confirmado" },
-  ];
+const Dashboard = () => {
+  const [stats, setStats] = useState<DashboardStat[]>([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      setIsLoading(true);
+      try {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+        const [appointmentsResponse, clientsResponse, servicesResponse] = await Promise.all([
+          appointmentsAPI.getAll({ date: dateStr }),
+          clientsAPI.getAll(),
+          servicesAPI.getAll(),
+        ]);
+
+        // Garantir que são arrays
+        const todayAppointments = Array.isArray(appointmentsResponse)
+          ? appointmentsResponse
+          : (appointmentsResponse?.items || []);
+
+        const clients = Array.isArray(clientsResponse)
+          ? clientsResponse
+          : (clientsResponse?.items || []);
+
+        const services = Array.isArray(servicesResponse)
+          ? servicesResponse
+          : [];
+
+        const activeServices = services.filter((s: any) => s.active);
+        const pendingCount = todayAppointments.filter((a: any) => a.status === "scheduled").length;
+        const lastAppointment = todayAppointments[todayAppointments.length - 1];
+
+        const lastAppointmentText = lastAppointment
+          ? `${lastAppointment.time} - ${lastAppointment.client?.name || lastAppointment.clientName || "Cliente"}`
+          : "Nenhum agendamento";
+
+        const lastAppointmentDesc = lastAppointment
+          ? "Último horário agendado hoje"
+          : "Nenhum agendamento hoje";
+
+        setStats([
+          {
+            title: "Agendamentos Hoje",
+            value: String(todayAppointments.length),
+            description: pendingCount ? `${pendingCount} pendente(s)` : "Nenhum pendente",
+            icon: Calendar,
+            color: "text-primary",
+          },
+          {
+            title: "Total de Clientes",
+            value: String(clients.length),
+            description: "Clientes cadastradas",
+            icon: Users,
+            color: "text-primary",
+          },
+          {
+            title: "Serviços Ativos",
+            value: String(activeServices.length),
+            description: "Serviços disponíveis para agendamento",
+            icon: TrendingUp,
+            color: "text-primary",
+          },
+          {
+            title: "Último agendamento",
+            value: lastAppointmentText,
+            description: lastAppointmentDesc,
+            icon: DollarSign,
+            color: "text-primary",
+          },
+        ]);
+
+        setUpcomingAppointments(todayAppointments.slice(0, 5));
+      } catch (error) {
+        console.error(error);
+        toast.error("Erro ao carregar dados do dashboard.");
+        // Definir valores padrão em caso de erro
+        setStats([
+          {
+            title: "Agendamentos Hoje",
+            value: "0",
+            description: "Nenhum pendente",
+            icon: Calendar,
+            color: "text-primary",
+          },
+          {
+            title: "Total de Clientes",
+            value: "0",
+            description: "Clientes cadastradas",
+            icon: Users,
+            color: "text-primary",
+          },
+          {
+            title: "Serviços Ativos",
+            value: "0",
+            description: "Serviços disponíveis para agendamento",
+            icon: TrendingUp,
+            color: "text-primary",
+          },
+          {
+            title: "Status",
+            value: "Erro",
+            description: "Falha ao carregar dados",
+            icon: DollarSign,
+            color: "text-primary",
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Carregando dados do dashboard...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -50,11 +154,11 @@ const Dashboard = () => {
         <div>
           <h1 className="text-4xl font-serif font-bold text-foreground mb-2">Dashboard</h1>
           <p className="text-muted-foreground">
-            Visão geral do seu negócio - {new Date().toLocaleDateString("pt-BR", { 
-              weekday: "long", 
-              year: "numeric", 
-              month: "long", 
-              day: "numeric" 
+            Visão geral do seu negócio - {new Date().toLocaleDateString("pt-BR", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}
           </p>
         </div>
@@ -83,50 +187,64 @@ const Dashboard = () => {
         </div>
 
         {/* Upcoming Appointments */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-serif">Próximos Agendamentos</CardTitle>
-              <CardDescription>Agendamentos de hoje</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {upcomingAppointments.map((appointment) => (
-                  <div
-                    key={appointment.id}
-                    className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-primary" />
+        {upcomingAppointments.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-serif">Próximos Agendamentos</CardTitle>
+                <CardDescription>Agendamentos de hoje</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {upcomingAppointments.map((appointment) => (
+                    <div
+                      key={appointment.id}
+                      className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground">
+                            {appointment.client?.name || appointment.clientName || "Cliente"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {appointment.service?.name || appointment.serviceName || "Serviço"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-foreground">{appointment.client}</p>
-                        <p className="text-sm text-muted-foreground">{appointment.service}</p>
+                      <div className="text-right">
+                        <p className="font-semibold text-foreground">{appointment.time}</p>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            appointment.status === "done"
+                              ? "bg-green-100 text-green-700"
+                              : appointment.status === "canceled"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-primary/20 text-primary"
+                          }`}
+                        >
+                          {appointment.status === "scheduled"
+                            ? "Agendado"
+                            : appointment.status === "done"
+                              ? "Realizado"
+                              : appointment.status === "canceled"
+                                ? "Cancelado"
+                                : appointment.status}
+                        </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-foreground">{appointment.time}</p>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          appointment.status === "confirmado"
-                            ? "bg-primary/20 text-primary"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {appointment.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
     </AdminLayout>
   );

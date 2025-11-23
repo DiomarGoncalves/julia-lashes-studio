@@ -408,7 +408,7 @@ Retorna configurações do site. **[PROTEGIDO]**
   "contactEmail": "contato@lashstudio.com",
   "contactPhone": "62996006289",
   "whatsappNumber": "5562996006289",
-  "instagramUrl": "https://instagram.com/lashstudio",
+  "instagramUrl": "https://www.instagram.com/juliaoliveiramartins_/?igsh=ZHdua2V5Mnk3dDY0#/lashstudio",
   "facebookUrl": "https://facebook.com/lashstudio",
   "address": {
     "street": "Rua das Flores, 123",

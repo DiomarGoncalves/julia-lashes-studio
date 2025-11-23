@@ -1,5 +1,12 @@
 import { Link } from "react-router-dom";
-import { Sparkles, Instagram, Facebook, Mail, Phone, MapPin } from "lucide-react";
+import {
+  Sparkles,
+  Instagram,
+  Facebook,
+  Mail,
+  Phone,
+  MapPin,
+} from "lucide-react";
 
 const Footer = () => {
   return (
@@ -10,27 +17,44 @@ const Footer = () => {
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
               <Sparkles className="w-6 h-6 text-primary" />
-              <span className="font-serif text-xl font-bold text-foreground">LashStudio</span>
+              <span className="font-serif text-xl font-bold text-foreground">
+                LashStudio
+              </span>
             </Link>
             <p className="text-muted-foreground text-sm">
-              Realçando sua beleza natural com técnicas profissionais de extensão de cílios.
+              Realçando sua beleza natural com técnicas profissionais de
+              extensão de cílios.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Links Rápidos</h3>
+            <h3 className="font-semibold text-foreground mb-4">
+              Links Rápidos
+            </h3>
             <nav className="flex flex-col gap-2">
-              <Link to="/sobre" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+              <Link
+                to="/sobre"
+                className="text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
                 Sobre Nós
               </Link>
-              <Link to="/servicos" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+              <Link
+                to="/servicos"
+                className="text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
                 Serviços
               </Link>
-              <Link to="/galeria" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+              <Link
+                to="/galeria"
+                className="text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
                 Galeria
               </Link>
-              <Link to="/contato" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+              <Link
+                to="/contato"
+                className="text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
                 Contato
               </Link>
             </nav>
@@ -41,8 +65,8 @@ const Footer = () => {
             <h3 className="font-semibold text-foreground mb-4">Contato</h3>
             <div className="flex flex-col gap-3">
               <a
-              target="_blank"
-              rel="external"
+                target="_blank"
+                rel="external"
                 href="https://wa.me/5562996006289?text=Ol%C3%A1%20Gost%C3%A1ria%20de%20agendar%20um%20hor%C3%A1rio"
                 className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm"
               >
@@ -51,7 +75,12 @@ const Footer = () => {
               </a>
               <div className="flex items-start gap-2 text-muted-foreground text-sm">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>Rua das Flores, 123<br />São Paulo - SP</span>
+                <span>
+                  Centro Comercial Abrão Olinto <br /> R. Miguel Araújo da
+                  Silva,
+                  <br />
+                  Santa Bárbara de Goiás - GO, 75390-000
+                </span>
               </div>
             </div>
           </div>
@@ -70,7 +99,9 @@ const Footer = () => {
               </a>
             </div>
             <div className="text-sm">
-              <p className="font-semibold text-foreground mb-2">Horário de Atendimento</p>
+              <p className="font-semibold text-foreground mb-2">
+                Horário de Atendimento
+              </p>
               <p className="text-muted-foreground">Seg - Sex: 7h - 17h</p>
               <p className="text-muted-foreground">Sáb: 9h - 15h</p>
             </div>

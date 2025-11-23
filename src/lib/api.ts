@@ -78,7 +78,7 @@ export const servicesAPI = {
 // Appointments
 export const appointmentsAPI = {
   getAvailability: async (serviceId: string, date: string) => {
-    const { data } = await api.get('/availability', {
+    const { data } = await api.get('/appointments/availability', {
       params: { serviceId, date },
     });
     return data;
@@ -133,10 +133,67 @@ export const settingsAPI = {
   },
 };
 
-// Contact
-export const contactAPI = {
-  send: async (contactData: any) => {
-    const { data } = await api.post('/contact', contactData);
+// Gallery
+export const galleryAPI = {
+  getAll: async () => {
+    const { data } = await api.get('/gallery');
+    return data;
+  },
+  create: async (imageData: any) => {
+    const { data } = await api.post('/gallery', imageData);
+    return data;
+  },
+  delete: async (id: string) => {
+    const { data } = await api.delete(`/gallery/${id}`);
     return data;
   },
 };
+
+// Service Images
+export const serviceImagesAPI = {
+  getByService: async (serviceId: string) => {
+    const { data } = await api.get(`/service-images/service/${serviceId}`);
+    return data;
+  },
+  create: async (imageData: any) => {
+    const { data } = await api.post('/service-images', imageData);
+    return data;
+  },
+  delete: async (id: string) => {
+    const { data } = await api.delete(`/service-images/${id}`);
+    return data;
+  },
+};
+
+// Testimonials
+export const testimonialsAPI = {
+  getAll: async () => {
+    const { data } = await api.get('/testimonials');
+    return data;
+  },
+  generateLink: async (appointmentId: string) => {
+    const { data } = await api.post(`/testimonials/generate-link/${appointmentId}`);
+    return data;
+  },
+  getLinkInfo: async (appointmentId: string) => {
+    const { data } = await api.get(`/testimonials/link-info/${appointmentId}`);
+    return data;
+  },
+  getPublic: async (uniqueLink: string) => {
+    const { data } = await api.get(`/testimonials/public/${uniqueLink}`);
+    return data;
+  },
+  submit: async (uniqueLink: string, testimonialData: any) => {
+    const { data } = await api.post(`/testimonials/submit/${uniqueLink}`, testimonialData);
+    return data;
+  },
+  delete: async (id: string) => {
+    const { data } = await api.delete(`/testimonials/${id}`);
+    return data;
+  },
+  getPublished: async () => {
+    const { data } = await api.get('/testimonials/published'); // endpoint público adicionado no backend
+    return data;
+  },
+};
+

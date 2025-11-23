@@ -58,21 +58,18 @@ const About = () => {
                 Nossa História
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                O LashStudio nasceu da paixão por realçar a beleza natural de cada mulher. Com mais de 
-                5 anos de experiência no mercado de estética, nossa fundadora decidiu criar um espaço 
-                dedicado exclusivamente à arte da extensão de cílios.
+                Bem-vinda ao meu espaço! Sou uma lash designer apaixonada pela arte de realçar a beleza natural através dos cílios. Mesmo estando no início da minha jornada profissional, dedico cada atendimento a oferecer cuidado, atenção aos detalhes e resultados feitos com muito carinho.
+Meu compromisso é proporcionar uma experiência confortável, segura e personalizada. 
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Nosso compromisso é oferecer um atendimento diferenciado, utilizando apenas produtos 
-                de alta qualidade e técnicas atualizadas. Cada cliente recebe atenção personalizada, 
-                garantindo resultados que superam expectativas.
+               Acredito que cada olhar é único, por isso trabalho com técnicas que valorizam a individualidade de cada cliente, sempre prezando pela higiene, qualidade e naturalidade.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Acreditamos que cílios perfeitos não apenas transformam o olhar, mas também elevam 
-                a autoestima e confiança de cada mulher. É isso que nos motiva todos os dias.
+                Aqui, você encontra um ambiente acolhedor, pensado para que você se sinta confiante, especial e ainda mais bonita. Estou em constante aprendizado para entregar resultados cada vez melhores e acompanhar as tendências do mundo da beleza.
+Obrigada por fazer parte desse começo. Será um prazer realçar o seu olhar!
               </p>
               <Button variant="hero" size="lg" asChild>
-                <Link to="/agendar">Agende sua Visita</Link>
+                <Link target="_blank" to="https://api.whatsapp.com/send/?phone=5562996006289&text&type=phone_number&app_absent=0">Agende sua Visita</Link>
               </Button>
             </motion.div>
           </div>

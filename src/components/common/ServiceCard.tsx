@@ -8,12 +8,14 @@ interface ServiceCardProps {
   id: string;
   name: string;
   description: string;
-  duration: string;
-  price: string;
+  durationMinutes: number;
+  price: number;
   index?: number;
 }
 
-const ServiceCard = ({ id, name, description, duration, price, index = 0 }: ServiceCardProps) => {
+const ServiceCard = ({ id, name, description, durationMinutes, price, index = 0 }: ServiceCardProps) => {
+  const durationStr = `${Math.floor(durationMinutes / 60)}h${durationMinutes % 60 ? `${durationMinutes % 60}m` : ''}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -29,7 +31,7 @@ const ServiceCard = ({ id, name, description, duration, price, index = 0 }: Serv
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>{duration}</span>
+              <span>{durationStr}</span>
             </div>
             <div className="flex items-center gap-2 text-primary font-semibold text-lg">
               <DollarSign className="w-5 h-5" />

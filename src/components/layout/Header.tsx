@@ -90,7 +90,7 @@ const Header = () => {
               ))}
               <div className="flex gap-3 pt-4 border-t border-border">
                 <Button variant="ghost" size="icon" asChild>
-                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+                  <a href="https://www.instagram.com/juliaoliveiramartins_/?igsh=ZHdua2V5Mnk3dDY0#" target="_blank" rel="noopener noreferrer">
                     <Instagram className="w-5 h-5" />
                   </a>
                 </Button>

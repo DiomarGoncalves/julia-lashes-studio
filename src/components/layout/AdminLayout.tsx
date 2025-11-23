@@ -11,6 +11,8 @@ import {
   LogOut,
   Menu,
   X,
+  MessageCircle,
+  Camera,
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +32,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { icon: Calendar, label: "Agenda", path: "/sistema/agenda" },
     { icon: Users, label: "Clientes", path: "/sistema/clientes" },
     { icon: Package, label: "Serviços", path: "/sistema/servicos" },
+    { icon: Camera, label: "Galeria", path: "/sistema/galeria" }, // novo
+    { icon: MessageCircle, label: "Depoimentos", path: "/sistema/depoimentos" },
     { icon: Settings, label: "Configurações", path: "/sistema/configuracoes" },
   ];
 
