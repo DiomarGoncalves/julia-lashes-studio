@@ -50,7 +50,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       <aside className="hidden md:flex flex-col w-64 bg-secondary/30 border-r border-border">
         <div className="p-6 border-b border-border">
           <Link to="/sistema/dashboard" className="flex items-center gap-2">
-            <Sparkles className="w-8 h-8 text-primary" />
+             <img
+              src="/icon-192.png"
+              alt="Logo LashStudio"
+              className="w-10 h-10 rounded-md object-contain"
+            />
             <div>
               <h1 className="font-serif text-xl font-bold text-foreground">LashStudio</h1>
               <p className="text-xs text-muted-foreground">Sistema</p>

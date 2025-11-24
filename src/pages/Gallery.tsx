@@ -77,8 +77,9 @@ const Gallery = () => {
                   <img
                     src={image.url}
                     alt={image.alt || "Trabalho do estúdio"}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-contain bg-black/5 group-hover:scale-100 transition-transform duration-300"
                   />
+
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                     <p className="text-background font-semibold text-sm md:text-base">
@@ -104,8 +105,8 @@ const Gallery = () => {
             className="mt-12 md:mt-16 text-center px-4"
           >
             <p className="text-muted-foreground mb-4 md:mb-6 max-w-2xl mx-auto text-sm md:text-base">
-              Acompanhe nosso Instagram para ver mais trabalhos em tempo real e ficar por dentro
-              das novidades e promoções especiais!
+              Acompanhe nosso Instagram para ver mais trabalhos em tempo real e
+              ficar por dentro das novidades e promoções especiais!
             </p>
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
               <Button
@@ -149,9 +150,10 @@ const Gallery = () => {
               Quer aparecer em nossa galeria?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-6 md:mb-8 text-sm md:text-base">
-              Todas as nossas clientes recebem autorização para fotografarmos o resultado final.
-              As melhores fotos são publicadas em nosso Instagram (com sua permissão, claro!) e
-              você ainda concorre a descontos especiais na próxima manutenção!
+              Todas as nossas clientes recebem autorização para fotografarmos o
+              resultado final. As melhores fotos são publicadas em nosso
+              Instagram (com sua permissão, claro!) e você ainda concorre a
+              descontos especiais na próxima manutenção!
             </p>
             <Button
               variant="hero"

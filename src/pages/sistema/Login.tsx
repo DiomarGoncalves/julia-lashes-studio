@@ -44,7 +44,11 @@ const Login = () => {
         <Card className="w-full max-w-md shadow-elegant">
           <CardHeader className="text-center space-y-4">
             <div className="flex justify-center">
-              <Sparkles className="w-12 h-12 text-primary" />
+              <img
+              src="/icon-192.png"
+              alt="Logo LashStudio"
+              className="w-20 h-20 rounded-md object-contain"
+            />
             </div>
             <CardTitle className="text-3xl font-serif">LashStudio</CardTitle>
             <CardDescription>Sistema Administrativo</CardDescription>
