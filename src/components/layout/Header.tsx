@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Phone, Instagram, LogIn } from "lucide-react";
+import { Sparkles, Menu, X, Phone, Instagram, LogIn } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -12,20 +12,17 @@ const Header = () => {
     { label: "Sobre", path: "/sobre" },
     { label: "Serviços", path: "/servicos" },
     { label: "Galeria", path: "/galeria" },
-    { label: "Contato", path: "/contato" }
+    { label: "Contato", path: "/contato" },
+    { label: "Administração", path: "/administracao" },
   ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-soft">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          {/* Logo + nome (usar a logo da empresa) */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <img
-              src="/icon-192.png"
-              alt="Logo LashStudio"
-              className="w-10 h-10 rounded-md object-contain"
-            />
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <Sparkles className="w-8 h-8 text-primary group-hover:text-primary-glow transition-colors" />
             <div className="flex flex-col">
               <span className="font-serif text-2xl font-bold text-foreground">LashStudio</span>
               <span className="text-xs text-muted-foreground -mt-1">Beleza & Elegância</span>
