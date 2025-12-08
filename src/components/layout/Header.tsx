@@ -13,7 +13,6 @@ const Header = () => {
     { label: "Serviços", path: "/servicos" },
     { label: "Galeria", path: "/galeria" },
     { label: "Contato", path: "/contato" },
-    { label: "Administração", path: "/administracao" },
   ];
 
   return (
@@ -25,7 +24,7 @@ const Header = () => {
            <img
               src="/icon-192.png"
               alt="Logo LashStudio"
-              className="w-10 h-10 rounded-md object-contain"
+              className="w-20 h-20 rounded-md object-contain"
             />
             <div className="flex flex-col">
               <span className="font-serif text-2xl font-bold text-foreground">LashStudio</span>
