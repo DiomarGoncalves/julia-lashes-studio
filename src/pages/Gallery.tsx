@@ -2,7 +2,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Camera } from "lucide-react";
 import { useEffect, useState } from "react";
 import { galleryAPI } from "@/lib/api";
@@ -10,6 +10,12 @@ import { galleryAPI } from "@/lib/api";
 const Gallery = () => {
   const [galleryImages, setGalleryImages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // 👉 NOVO: estado para a imagem selecionada
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    alt: string;
+  } | null>(null);
 
   useEffect(() => {
     loadGallery();
@@ -22,15 +28,51 @@ const Gallery = () => {
       setGalleryImages(data || []);
     } catch (error) {
       console.error(error);
-      // fallback vazio se erro
       setGalleryImages([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 👉 NOVO: fechar com tecla ESC
+  useEffect(() => {
+    if (!selectedImage) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedImage(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImage]);
+
   return (
     <div className="min-h-screen flex flex-col">
+      {/* MODAL DE IMAGEM AMPLIADA */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 cursor-pointer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+          >
+            <motion.img
+              src={selectedImage.url}
+              alt={selectedImage.alt}
+              className="max-w-5xl w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()} // não fechar ao clicar na imagem
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Header />
 
       {/* Hero Section */}
@@ -65,29 +107,39 @@ const Gallery = () => {
             </div>
           ) : galleryImages.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto">
-              {galleryImages.map((image, index) => (
-                <motion.div
-                  key={image.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="group relative aspect-square overflow-hidden rounded-xl bg-muted cursor-pointer shadow-soft hover:shadow-elegant transition-all"
-                >
-                  <img
-                    src={image.url}
-                    alt={image.alt || "Trabalho do estúdio"}
-                    className="w-full h-full object-contain bg-black/5 group-hover:scale-100 transition-transform duration-300"
-                  />
+              {galleryImages.map((image, index) => {
+                const altText = image.alt || "Trabalho do estúdio";
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    <p className="text-background font-semibold text-sm md:text-base">
-                      {image.alt || "Extensão de Cílios"}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+                return (
+                  <motion.div
+                    key={image.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                    className="group relative aspect-square overflow-hidden rounded-xl bg-muted cursor-pointer shadow-soft hover:shadow-elegant transition-all"
+                    onClick={() =>
+                      setSelectedImage({
+                        url: image.url,
+                        alt: altText,
+                      })
+                    }
+                  >
+                    <img
+                      src={image.url}
+                      alt={altText}
+                      className="w-full h-full object-contain bg-black/5 group-hover:scale-100 transition-transform duration-300"
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <p className="text-background font-semibold text-sm md:text-base">
+                        {altText}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-12">
