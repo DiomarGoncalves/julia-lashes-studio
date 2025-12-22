@@ -61,18 +61,18 @@ const Booking = () => {
     const targetPhone = "5562996006289";
 
     const message = `
-Olá! Gostaria de confirmar meu agendamento 💖
+Olá! Gostaria de confirmar meu agendamento 
 
-📌 Serviço: ${selectedService?.name ?? "-"}
-📅 Data: ${
+ Serviço: ${selectedService?.name ?? "-"}
+ Data: ${
       bookingData.date
         ? new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR")
         : "-"
     }
-⏰ Horário: ${bookingData.time || "-"}
+ Horário: ${bookingData.time || "-"}
 
-👤 Nome: ${bookingData.name || "-"}
-📞 Telefone: ${bookingData.phone || "-"}
+ Nome: ${bookingData.name || "-"}
+ Telefone: ${bookingData.phone || "-"}
 `.trim();
 
     const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(
