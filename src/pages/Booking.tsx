@@ -37,7 +37,6 @@ const Booking = () => {
     phone: "",
   });
 
-  // --- Helpers ---
   const formatDuration = (minutes: number) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
@@ -56,32 +55,44 @@ const Booking = () => {
     [services, bookingData.serviceId]
   );
 
-  const sendWhatsAppMessage = () => {
-    // wa.me só aceita números (sem +, espaço, parênteses, hífen)
+  // Detecta mobile pra decidir target do link
+  const isMobile = () =>
+    typeof navigator !== "undefined" &&
+    /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+
+  const openWhatsApp = () => {
     const targetPhone = "5562996006289";
 
+    const dateBr =
+      bookingData.date &&
+      new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR");
+
     const message = `
-Olá! Gostaria de confirmar meu agendamento 
+Olá, gostaria de confirmar um agendamento.
 
- Serviço: ${selectedService?.name ?? "-"}
- Data: ${
-      bookingData.date
-        ? new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR")
-        : "-"
-    }
- Horário: ${bookingData.time || "-"}
+Servico: ${selectedService?.name ?? "-"}
+Data: ${dateBr || "-"}
+Horario: ${bookingData.time || "-"}
 
- Nome: ${bookingData.name || "-"}
- Telefone: ${bookingData.phone || "-"}
+Nome: ${bookingData.name || "-"}
+Telefone: ${bookingData.phone || "-"}
 `.trim();
 
-    const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(
+    // api.whatsapp.com costuma ser o mais compatível no mobile
+    const url = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(
       message
     )}`;
-    window.open(url, "_blank");
+
+    // No mobile, abrir na mesma aba é mais confiável
+    if (isMobile()) {
+      window.location.href = url;
+      return;
+    }
+
+    // No desktop, pode abrir em nova aba
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  // --- Load Services ---
   useEffect(() => {
     loadServices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,8 +102,6 @@ Olá! Gostaria de confirmar meu agendamento
     try {
       setIsLoadingServices(true);
       const data = await servicesAPI.getAll();
-      // opcional: se quiser esconder serviços inativos:
-      // setServices((data || []).filter((s: Service) => s.active));
       setServices(data || []);
     } catch (error) {
       toast.error("Erro ao carregar serviços");
@@ -102,33 +111,22 @@ Olá! Gostaria de confirmar meu agendamento
     }
   };
 
-  // --- Reset de dependências ---
-  // Quando troca serviço: limpa data, time e horários disponíveis
+  // Ao trocar serviço, zera data/time e horários
   useEffect(() => {
     if (!bookingData.serviceId) return;
-
-    setBookingData((prev) => ({
-      ...prev,
-      date: "",
-      time: "",
-    }));
+    setBookingData((prev) => ({ ...prev, date: "", time: "" }));
     setAvailableTimes([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingData.serviceId]);
 
-  // Quando troca data: limpa time e horários disponíveis (evita horário antigo)
+  // Ao trocar data, zera time e horários
   useEffect(() => {
     if (!bookingData.date) return;
-
-    setBookingData((prev) => ({
-      ...prev,
-      time: "",
-    }));
+    setBookingData((prev) => ({ ...prev, time: "" }));
     setAvailableTimes([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingData.date]);
 
-  // --- Availability ---
   const loadAvailability = async () => {
     if (!bookingData.serviceId || !bookingData.date) return;
 
@@ -148,7 +146,6 @@ Olá! Gostaria de confirmar meu agendamento
     }
   };
 
-  // IMPORTANTE: depende de step, date e serviceId
   useEffect(() => {
     if (step === 3) {
       loadAvailability();
@@ -156,7 +153,6 @@ Olá! Gostaria de confirmar meu agendamento
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, bookingData.date, bookingData.serviceId]);
 
-  // --- Submit ---
   const handleSubmit = async () => {
     if (!bookingData.name || !bookingData.phone) {
       toast.error("Por favor, preencha todos os campos");
@@ -172,9 +168,8 @@ Olá! Gostaria de confirmar meu agendamento
     try {
       await appointmentsAPI.create(bookingData);
 
-      // abre WhatsApp com mensagem pronta
-      sendWhatsAppMessage();
-
+      // NÃO abre automático (pra não bloquear no celular).
+      // A gente deixa o botão no step 5 fazer isso.
       setStep(5);
       toast.success("Agendamento realizado com sucesso!");
     } catch (error: any) {
@@ -393,7 +388,6 @@ Olá! Gostaria de confirmar meu agendamento
               Seus Dados
             </h2>
 
-            {/* Resumo */}
             <div className="bg-rose-light/20 rounded-lg p-4 md:p-6 space-y-3">
               <h3 className="font-semibold text-foreground mb-4 text-sm md:text-base">
                 Resumo do Agendamento
@@ -516,21 +510,21 @@ Olá! Gostaria de confirmar meu agendamento
             </div>
 
             <p className="text-muted-foreground max-w-md mx-auto text-sm md:text-base px-2">
-              Se precisar remarcar ou cancelar, fale com a gente no WhatsApp.
+              Para confirmar ou falar com a equipe, clique no botão abaixo.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                variant="outline"
+                variant="hero"
                 size="lg"
-                onClick={sendWhatsAppMessage}
+                onClick={openWhatsApp}
                 className="text-sm sm:text-base"
               >
-                Abrir WhatsApp
+                Confirmar no WhatsApp
               </Button>
 
               <Button
-                variant="hero"
+                variant="outline"
                 size="lg"
                 onClick={() => navigate("/")}
                 className="text-sm sm:text-base"
@@ -553,7 +547,6 @@ Olá! Gostaria de confirmar meu agendamento
       <section className="pt-20 md:pt-32 pb-12 md:pb-20 min-h-screen px-4">
         <div className="container mx-auto">
           <div className="max-w-2xl mx-auto">
-            {/* Progress Indicator */}
             {step < 5 && (
               <div className="mb-8 md:mb-12">
                 <div className="flex justify-between items-center mb-3 md:mb-4 gap-2">
@@ -590,7 +583,6 @@ Olá! Gostaria de confirmar meu agendamento
               </div>
             )}
 
-            {/* Step Content */}
             <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
           </div>
         </div>
