@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { Calendar, Clock, User, Phone, Check } from "lucide-react";
+import { Calendar, Clock, User, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { servicesAPI, appointmentsAPI } from "@/lib/api";
 
@@ -22,6 +22,7 @@ interface Service {
 const Booking = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
   const [step, setStep] = useState(1);
   const [services, setServices] = useState<Service[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
@@ -36,15 +37,63 @@ const Booking = () => {
     phone: "",
   });
 
+  // --- Helpers ---
+  const formatDuration = (minutes: number) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h${m}m`;
+  };
+
+  const getMinDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
+  const selectedService = useMemo(
+    () => services.find((s) => s.id === bookingData.serviceId),
+    [services, bookingData.serviceId]
+  );
+
+  const sendWhatsAppMessage = () => {
+    // wa.me só aceita números (sem +, espaço, parênteses, hífen)
+    const targetPhone = "5562996006289";
+
+    const message = `
+Olá! Gostaria de confirmar meu agendamento 💖
+
+📌 Serviço: ${selectedService?.name ?? "-"}
+📅 Data: ${
+      bookingData.date
+        ? new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR")
+        : "-"
+    }
+⏰ Horário: ${bookingData.time || "-"}
+
+👤 Nome: ${bookingData.name || "-"}
+📞 Telefone: ${bookingData.phone || "-"}
+`.trim();
+
+    const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(url, "_blank");
+  };
+
+  // --- Load Services ---
   useEffect(() => {
     loadServices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadServices = async () => {
     try {
       setIsLoadingServices(true);
       const data = await servicesAPI.getAll();
-      setServices(data);
+      // opcional: se quiser esconder serviços inativos:
+      // setServices((data || []).filter((s: Service) => s.active));
+      setServices(data || []);
     } catch (error) {
       toast.error("Erro ao carregar serviços");
       console.error(error);
@@ -53,6 +102,33 @@ const Booking = () => {
     }
   };
 
+  // --- Reset de dependências ---
+  // Quando troca serviço: limpa data, time e horários disponíveis
+  useEffect(() => {
+    if (!bookingData.serviceId) return;
+
+    setBookingData((prev) => ({
+      ...prev,
+      date: "",
+      time: "",
+    }));
+    setAvailableTimes([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingData.serviceId]);
+
+  // Quando troca data: limpa time e horários disponíveis (evita horário antigo)
+  useEffect(() => {
+    if (!bookingData.date) return;
+
+    setBookingData((prev) => ({
+      ...prev,
+      time: "",
+    }));
+    setAvailableTimes([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingData.date]);
+
+  // --- Availability ---
   const loadAvailability = async () => {
     if (!bookingData.serviceId || !bookingData.date) return;
 
@@ -62,7 +138,7 @@ const Booking = () => {
         bookingData.serviceId,
         bookingData.date
       );
-      setAvailableTimes(data.availableTimes || []);
+      setAvailableTimes(data?.availableTimes || []);
     } catch (error) {
       toast.error("Erro ao carregar horários disponíveis");
       console.error(error);
@@ -72,39 +148,44 @@ const Booking = () => {
     }
   };
 
+  // IMPORTANTE: depende de step, date e serviceId
   useEffect(() => {
     if (step === 3) {
       loadAvailability();
     }
-  }, [step, bookingData.date]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, bookingData.date, bookingData.serviceId]);
 
+  // --- Submit ---
   const handleSubmit = async () => {
     if (!bookingData.name || !bookingData.phone) {
       toast.error("Por favor, preencha todos os campos");
       return;
     }
 
+    if (!bookingData.serviceId || !bookingData.date || !bookingData.time) {
+      toast.error("Por favor, finalize serviço, data e horário");
+      return;
+    }
+
     setIsLoading(true);
     try {
       await appointmentsAPI.create(bookingData);
+
+      // abre WhatsApp com mensagem pronta
+      sendWhatsAppMessage();
+
       setStep(5);
       toast.success("Agendamento realizado com sucesso!");
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message ||
+        error?.response?.data?.message ||
           "Erro ao realizar agendamento. Tente novamente ou entre em contato via WhatsApp."
       );
       console.error(error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const selectedService = services.find((s) => s.id === bookingData.serviceId);
-
-  const getMinDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
   };
 
   const renderStep = () => {
@@ -121,6 +202,7 @@ const Booking = () => {
             <h2 className="text-2xl sm:text-3xl md:text-3xl font-serif font-bold text-foreground mb-4 md:mb-6">
               Escolha o Serviço
             </h2>
+
             {isLoadingServices ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
@@ -147,7 +229,10 @@ const Booking = () => {
                       }
                     >
                       <RadioGroupItem value={service.id} id={service.id} />
-                      <Label htmlFor={service.id} className="flex-1 cursor-pointer flex-col space-y-1">
+                      <Label
+                        htmlFor={service.id}
+                        className="flex-1 cursor-pointer flex-col space-y-1"
+                      >
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                           <p className="font-semibold text-foreground text-sm md:text-base">
                             {service.name}
@@ -157,15 +242,13 @@ const Booking = () => {
                           </p>
                         </div>
                         <p className="text-xs md:text-sm text-muted-foreground">
-                          Duração: {Math.floor(service.durationMinutes / 60)}h
-                          {service.durationMinutes % 60
-                            ? `${service.durationMinutes % 60}m`
-                            : ""}
+                          Duração: {formatDuration(service.durationMinutes)}
                         </p>
                       </Label>
                     </div>
                   ))}
                 </RadioGroup>
+
                 <Button
                   variant="hero"
                   size="lg"
@@ -192,8 +275,11 @@ const Booking = () => {
             <h2 className="text-2xl sm:text-3xl md:text-3xl font-serif font-bold text-foreground mb-4 md:mb-6">
               Escolha a Data
             </h2>
+
             <div>
-              <Label htmlFor="date" className="text-sm md:text-base">Selecione uma data</Label>
+              <Label htmlFor="date" className="text-sm md:text-base">
+                Selecione uma data
+              </Label>
               <Input
                 id="date"
                 type="date"
@@ -205,7 +291,8 @@ const Booking = () => {
                 className="mt-2 text-sm md:text-base"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 gap-3 md:gap-4">
+
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
               <Button
                 variant="outline"
                 size="lg"
@@ -239,10 +326,13 @@ const Booking = () => {
             <h2 className="text-2xl sm:text-3xl md:text-3xl font-serif font-bold text-foreground mb-4 md:mb-6">
               Escolha o Horário
             </h2>
+
             {isLoading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-                <p className="text-muted-foreground mt-4 text-sm md:text-base">Carregando horários...</p>
+                <p className="text-muted-foreground mt-4 text-sm md:text-base">
+                  Carregando horários...
+                </p>
               </div>
             ) : availableTimes.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
@@ -267,6 +357,7 @@ const Booking = () => {
                 </p>
               </div>
             )}
+
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
               <Button
                 variant="outline"
@@ -307,28 +398,41 @@ const Booking = () => {
               <h3 className="font-semibold text-foreground mb-4 text-sm md:text-base">
                 Resumo do Agendamento
               </h3>
+
               <div className="flex items-center gap-3 text-xs md:text-sm">
                 <User className="w-4 h-4 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Serviço:</span>
-                <span className="font-medium text-foreground break-words">{selectedService?.name}</span>
+                <span className="font-medium text-foreground break-words">
+                  {selectedService?.name}
+                </span>
               </div>
+
               <div className="flex items-center gap-3 text-xs md:text-sm">
                 <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Data:</span>
                 <span className="font-medium text-foreground">
-                  {new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                  {bookingData.date
+                    ? new Date(bookingData.date + "T00:00:00").toLocaleDateString(
+                        "pt-BR"
+                      )
+                    : "-"}
                 </span>
               </div>
+
               <div className="flex items-center gap-3 text-xs md:text-sm">
                 <Clock className="w-4 h-4 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Horário:</span>
-                <span className="font-medium text-foreground">{bookingData.time}</span>
+                <span className="font-medium text-foreground">
+                  {bookingData.time || "-"}
+                </span>
               </div>
             </div>
 
             <div className="space-y-3 md:space-y-4">
               <div>
-                <Label htmlFor="name" className="text-sm md:text-base">Nome completo</Label>
+                <Label htmlFor="name" className="text-sm md:text-base">
+                  Nome completo
+                </Label>
                 <Input
                   id="name"
                   value={bookingData.name}
@@ -340,8 +444,11 @@ const Booking = () => {
                   required
                 />
               </div>
+
               <div>
-                <Label htmlFor="phone" className="text-sm md:text-base">Telefone/WhatsApp</Label>
+                <Label htmlFor="phone" className="text-sm md:text-base">
+                  Telefone/WhatsApp
+                </Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -389,23 +496,48 @@ const Booking = () => {
             <div className="w-16 h-16 md:w-20 md:h-20 mx-auto bg-gradient-primary rounded-full flex items-center justify-center">
               <Check className="w-8 h-8 md:w-10 md:h-10 text-white" />
             </div>
+
             <h2 className="text-3xl sm:text-4xl md:text-4xl font-serif font-bold text-foreground">
               Agendamento Confirmado!
             </h2>
+
             <div className="bg-rose-light/20 rounded-lg p-4 md:p-6 max-w-md mx-auto space-y-2 md:space-y-3">
               <p className="text-foreground font-semibold text-sm md:text-base">
                 {selectedService?.name}
               </p>
               <p className="text-muted-foreground text-xs md:text-sm">
-                {new Date(bookingData.date + "T00:00:00").toLocaleDateString("pt-BR")} às {bookingData.time}
+                {bookingData.date
+                  ? new Date(bookingData.date + "T00:00:00").toLocaleDateString(
+                      "pt-BR"
+                    )
+                  : "-"}{" "}
+                às {bookingData.time}
               </p>
             </div>
+
             <p className="text-muted-foreground max-w-md mx-auto text-sm md:text-base px-2">
-              Enviamos uma confirmação para seu WhatsApp. Caso precise remarcar ou cancelar, entre em contato conosco.
+              Se precisar remarcar ou cancelar, fale com a gente no WhatsApp.
             </p>
-            <Button variant="hero" size="lg" onClick={() => navigate("/")} className="text-sm sm:text-base">
-              Voltar para Home
-            </Button>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={sendWhatsAppMessage}
+                className="text-sm sm:text-base"
+              >
+                Abrir WhatsApp
+              </Button>
+
+              <Button
+                variant="hero"
+                size="lg"
+                onClick={() => navigate("/")}
+                className="text-sm sm:text-base"
+              >
+                Voltar para Home
+              </Button>
+            </div>
           </motion.div>
         );
 
@@ -436,10 +568,15 @@ const Booking = () => {
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {s < step ? <Check className="w-4 h-4 md:w-5 md:h-5" /> : s}
+                      {s < step ? (
+                        <Check className="w-4 h-4 md:w-5 md:h-5" />
+                      ) : (
+                        s
+                      )}
                     </div>
                   ))}
                 </div>
+
                 <div className="flex gap-1 md:gap-2">
                   {[1, 2, 3, 4].map((s) => (
                     <div
